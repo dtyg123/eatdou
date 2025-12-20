@@ -207,8 +207,6 @@ export default {
 
 	// 触摸开始事件
 	tstart(e) {
-		// 困难难度禁用触摸控制
-		if (this.diff === 3) return;
 		const t = e.touches[0];
 		this.sx = t.pageX;
 		this.sy = t.pageY;
@@ -217,8 +215,7 @@ export default {
 
 	// 触摸移动事件
 	tmove(e) {
-		// 困难难度禁用触摸控制 或 未触摸时忽略
-		if (this.diff === 3 || !this.tch) return;
+		if (!this.tch) return;
 		const t = e.touches[0],
 			dx = t.pageX - this.sx, // X轴位移
 			dy = t.pageY - this.sy; // Y轴位移
