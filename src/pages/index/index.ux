@@ -1,0 +1,103 @@
+<template>
+  <!-- 赞赏支持界面 -->
+  <div class="body">
+    <!-- 返回按钮 -->
+    <div class="back" @click="goBack">
+      <text class="btxt">&lt;</text>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="cont">
+      <!-- QQ群二维码 -->
+      <div class="qrct">
+        <qrcode class="qrcd" value="https://qm.qq.com/q/H8xSXUkBSq"></qrcode>
+      </div>
+      <text class="tip">加入QQ群</text>
+
+      <!-- 微信赞赏二维码 -->
+      <div class="qrct">
+        <qrcode
+          class="qrcd"
+          value="wxp://f2f0maVMssk_WxcCZrtji0exw5SeJjBeKcOCV33WzpsXN3ZYyTpDWsO6zwZZh_Oi06Ad"
+        ></qrcode>
+      </div>
+      <text class="tip">微信赞赏</text>
+
+      <!-- 支付宝赞赏二维码 -->
+      <div class="qrct">
+        <qrcode class="qrcd" value="https://qr.alipay.com/fkx19189vuct4z3zzadpgbd"></qrcode>
+      </div>
+      <text class="tip">支付宝赞赏</text>
+
+      <!-- 爱发电赞赏二维码 -->
+      <div class="qrct">
+        <qrcode class="qrcd" value="https://afdian.com/a/dtyg123"></qrcode>
+      </div>
+      <text class="tip">爱发电赞赏</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+// 赞赏支持界面逻辑
+export default {
+  // 返回主界面
+  goBack() {
+    router.replace({
+      uri: "/pages/main"
+    })
+  }
+}
+</script>
+
+<style>
+@import "../../common/styles.css";
+
+/* 页面主体样式 */
+.body {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: black;
+  height: 100%;
+  width: 100%;
+  padding-top: 10px;
+}
+
+/* 内容区域样式 */
+.cont {
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+}
+
+/* 二维码容器样式 */
+.qrct {
+  width: 190px;
+  height: 190px;
+  background-color: #e4d26c;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* 二维码样式 */
+.qrcd {
+  width: 180px;
+  height: 180px;
+  color: rgb(45, 45, 45);
+  background-color: #e4d26c;
+}
+
+/* 提示文字样式 */
+.tip {
+  font-size: 23px;
+  color: #ffd700;
+  font-style: normal;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+</style>

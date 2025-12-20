@@ -1,0 +1,20 @@
+/* 公共样式文件 */
+
+/* 返回按钮样式 */
+.back {
+  top: 5px;
+  width: 50px;
+  height: 50px;
+  background-color: #252525;
+  border: 2px solid #2c2c2c;
+  border-radius: 25px;
+  display: flex;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btxt {
+  color: #ffd700;
+  font-size: 30px;
+  font-weight: bold;
+}

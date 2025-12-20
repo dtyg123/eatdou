@@ -1,0 +1,40 @@
+{
+  "package": "com.dtyg123.eatdou.t",
+  "name": "吃豆人",
+  "versionName": "3.1.0",
+  "versionCode": 1,
+  "minPlatformVersion": 1000,
+  "icon": "/common/logo.png",
+  "deviceTypeList": [
+    "watch"
+  ],
+  "features": [
+    {"name": "system.router"},
+    {"name": "system.app"},
+    {"name":"system.storage"},
+    {"name": "system.device"},
+    {"name": "system.prompt"}
+  ],
+  
+  "config": {
+    "logLevel": "log",
+    "designWidth": "device-width"
+  },
+  "router": {
+    "entry": "pages/main",
+    "pages": {
+      "pages/main": {
+        "component": "main"
+      },
+      "pages/index": {
+        "component": "index"
+      },
+      "pages/game": {
+        "component": "game"
+      },
+      "pages/difficulty": {
+        "component": "difficulty"
+      }
+    }
+  }
+}

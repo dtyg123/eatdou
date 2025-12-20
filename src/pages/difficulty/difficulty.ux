@@ -1,0 +1,247 @@
+<template>
+  <!-- 难度选择界面 -->
+  <div class="body">
+    <!-- 返回按钮 -->
+    <div class="back" @click="goBack">
+      <text class="btxt">&lt;</text>
+    </div>
+
+    <!-- 积分显示区域 -->
+    <div class="info">
+      <text class="vers">当前积分: {{ scor }}</text>
+    </div>
+
+    <!-- 难度选择区域 -->
+    <div class="opts">
+      <!-- 简单难度选项 -->
+      <div class="item {{ lvl === 1 ? 'sel' : '' }}" @click="level(1)">
+        <text class="txt">简单</text>
+        <text class="desc">无仙人掌</text>
+      </div>
+
+      <!-- 中等难度选项 -->
+      <div class="item {{ lvl === 2 ? 'sel' : '' }}" @click="level(2)">
+        <text class="txt">中等</text>
+        <text class="desc">有仙人掌</text>
+      </div>
+
+      <!-- 困难难度选项 -->
+      <div class="item {{ lvl === 3 ? 'sel' : '' }}" @click="level(3)">
+        <text class="txt">困难</text>
+        <text class="desc">仙人掌+碰壁死亡</text>
+      </div>
+    </div>
+
+    <!-- 限时选项区域 -->
+    <div class="time" if="{{ lvl > 0 }}">
+      <text class="vers">消耗:{{ cost }}积分</text>
+      <text class="vers">限时:{{ tlim }}秒</text>
+      <!-- 时间滑动条 -->
+      <slider
+        class="tsld"
+        min="10"
+        max="120"
+        value="{{ tlim }}"
+        step="10"
+        @change="change"
+      ></slider>
+    </div>
+
+    <!-- 开始游戏按钮 -->
+    <div class="strt" @click="startGame" if="{{ lvl > 0 }}">
+      <text class="stxt">开始游戏</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import storage from "@system.storage"
+import prompt from "@system.prompt"
+
+// 难度选择界面逻辑
+export default {
+  // 页面数据
+  data: {
+    lvl: 0, // 难度等级 (0:未选择, 1:简单, 2:中等, 3:困难)
+    tlim: 60, // 时间限制 (秒)
+    scor: 0, // 当前总分
+    cost: 0 // 消耗积分
+  },
+
+  // 页面初始化
+  onInit() {
+    // 从本地存储获取总分
+    storage.get({
+      key: "totalScore",
+      success: (data) => {
+        this.scor = data ? parseInt(data) : 0
+      },
+      fail: () => {
+        this.scor = 0
+      }
+    })
+  },
+
+  // 返回按键处理
+  onBackPress() {
+    return true
+  },
+
+  // 选择难度等级
+  level(l) {
+    this.lvl = l
+    // 计算消耗积分: 难度等级*(时间限制/10)+难度等级-2
+    this.cost = this.lvl * (this.tlim / 10) + this.lvl - 2
+  },
+
+  // 时间滑块变化处理
+  change(e) {
+    this.tlim = e.progress
+    // 重新计算消耗积分
+    this.cost = this.lvl * (this.tlim / 10) + this.lvl - 2
+  },
+
+  // 开始游戏
+  startGame() {
+    // 如果积分不足，不开始游戏
+    if (this.scor < this.cost) {
+      prompt.showToast({
+        message: "积分不足，无法开始游戏"
+      })
+    } else {
+      // 扣除消耗的积分
+      this.scor -= this.cost
+      storage.set({
+        key: "totalScore",
+        value: this.scor.toString()
+      })
+
+      // 跳转到游戏界面
+      router.replace({
+        uri: "/pages/game",
+        params: {
+          diff: this.lvl, // 难度等级
+          tim: this.tlim // 时间限制
+        }
+      })
+    }
+  },
+
+  // 返回主界面
+  goBack() {
+    router.replace({
+      uri: "/pages/main"
+    })
+  }
+}
+</script>
+
+<style>
+@import "../../common/styles.css";
+
+/* 页面主体样式 */
+.body {
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+}
+
+/* 难度选项区域样式 */
+.opts {
+  width: 80%;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* 难度选项样式 */
+.item {
+  width: 100%;
+  padding: 15px;
+  margin: 8px 0;
+  background-color: #333;
+  border-radius: 12px;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid #000;
+}
+
+/* 选项标题样式 */
+.txt {
+  font-size: 28px;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* 选项描述样式 */
+.desc {
+  font-size: 24px;
+  color: #ccc;
+  margin-top: 5px;
+}
+
+/* 选中状态样式 */
+.sel {
+  background-color: #ffd700;
+  border: 2px solid #000;
+}
+
+/* 选中状态下的标题样式 */
+.sel .txt {
+  color: #000;
+}
+
+/* 选中状态下的描述样式 */
+.sel .desc {
+  color: #333;
+}
+
+/* 信息展示区域样式 */
+.info {
+  align-items: center;
+  flex-direction: column;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* 版本信息文字样式 */
+.vers {
+  font-size: 27px;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* 限时选项区域样式 */
+.time {
+  width: 80%;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* 时间滑块样式 */
+.tsld {
+  width: 100%;
+  height: 40px;
+}
+
+/* 开始按钮样式 */
+.strt {
+  padding: 15px;
+  background-color: #333;
+  border-radius: 12px;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid #000;
+}
+
+/* 开始按钮文字样式 */
+.stxt {
+  font-size: 28px;
+  color: #ffd700;
+  font-weight: bold;
+}
+</style>

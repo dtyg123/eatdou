@@ -1,0 +1,144 @@
+<template>
+  <!-- 主界面 -->
+  <div class="body">
+    <!-- 返回按钮 -->
+    <div class="back" @click="goBack">
+      <text class="btxt">&lt;</text>
+    </div>
+
+    <!-- 标题区域 -->
+    <div class="head">
+      <text class="titl">吃豆人</text>
+    </div>
+
+    <!-- 主菜单区域 -->
+    <div class="info">
+      <!-- 版本信息 -->
+      <text class="vers">作者:</text>
+      <text class="vers">dtyg123</text>
+      <text class="vers">版本:{{ versName }}</text>
+
+      <!-- 开始游戏按钮 -->
+      <div class="item" @click="start">
+        <text class="mtxt">开始游戏</text>
+      </div>
+
+      <!-- 赞赏支持按钮 -->
+      <div class="item" @click="toindex">
+        <text class="mtxt">赞赏支持</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import app from "@system.app"
+
+// 主界面逻辑
+export default {
+  // 页面数据
+  data: {
+    versName: "" // 应用版本号
+  },
+
+  // 页面初始化
+  onInit() {
+    const appInfo = app.getInfo()
+    this.versName = appInfo.versionName
+  },
+
+  // 开始游戏按钮点击事件
+  start() {
+    router.push({
+      uri: "/pages/difficulty"
+    })
+  },
+
+  // 跳转到赞赏页面
+  toindex() {
+    router.push({
+      uri: "/pages/index"
+    })
+  },
+
+  // 返回按钮点击事件
+  goBack() {
+    app.terminate()
+  }
+}
+</script>
+
+<style>
+@import "../../common/styles.css";
+
+/* 页面主体样式 */
+.body {
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+}
+
+/* 标题区域样式 */
+.head {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+/* 标题文字样式 */
+.titl {
+  font-size: 48px;
+  color: #ffd700;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* 菜单区域样式 */
+.menu {
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+}
+
+/* 信息展示区域样式 */
+.info {
+  align-items: center;
+  flex-direction: column;
+  margin-bottom: 20px;
+  width: 100%;
+  text-align: center;
+}
+
+/* 版本信息文字样式 */
+.vers {
+  font-size: 28px;
+  color: #ffffff;
+  margin-bottom: 5px;
+}
+
+/* 菜单项按钮样式 */
+.item {
+  padding: 15px;
+  margin: 15px 0;
+  background-color: #252525;
+  border: 2px solid #ffd700;
+  border-radius: 15px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(32, 32, 32, 0.3);
+}
+
+/* 菜单文字样式 */
+.mtxt {
+  font-size: 28px;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* 底部区域样式 */
+.foot {
+  align-items: center;
+}
+</style>
