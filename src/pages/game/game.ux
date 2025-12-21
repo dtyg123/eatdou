@@ -1,467 +1,449 @@
 <template>
-	<!-- 游戏主界面 -->
-	<div
-		class="body"
-		@touchstart="tstart"
-		@touchmove="tmove"
-		@touchend="tend"
-		@touchcancel="tend"
-	>
-		<!-- 玩家角色 -->
-		<div
-			class="man"
-			style="top:{{ ply.t }}px;left:{{ ply.l }}px;width:{{ psz }}px;height:{{ psz }}px;"
-			if="{{ !over }}"
-		>
-			<text>人</text>
-		</div>
+  <!-- 游戏主界面 -->
+  <div class="body" @touchstart="tstart" @touchmove="tmove" @touchend="tend" @touchcancel="tend">
+    <!-- 玩家角色 -->
+    <div
+      class="man"
+      style="top:{{ ply.t }}px;left:{{ ply.l }}px;width:{{ psz }}px;height:{{ psz }}px;"
+      if="{{ !over }}"
+    >
+      <text>人</text>
+    </div>
 
-		<!-- 豆子 -->
-		<div
-			class="dou"
-			style="top:{{ bn.t }}px;left:{{ bn.l }}px;width:{{ bsz }}px;height:{{ bsz }}px;"
-			if="{{ !over }}"
-		>
-			<text>豆</text>
-		</div>
+    <!-- 豆子 -->
+    <div
+      class="dou"
+      style="top:{{ bn.t }}px;left:{{ bn.l }}px;width:{{ bsz }}px;height:{{ bsz }}px;"
+      if="{{ !over }}"
+    >
+      <text>豆</text>
+    </div>
 
-		<!-- 仙人掌 -->
-		<div
-			class="cact"
-			if="{{ !over && cac.show }}"
-			style="top:{{ cac.t }}px;left:{{ cac.l }}px;width:{{ csz.w }}px;height:{{ csz.h }}px;"
-		>
-			<text class="ctxt">仙人掌</text>
-		</div>
+    <!-- 仙人掌 -->
+    <div
+      class="cact"
+      if="{{ !over && cac.show }}"
+      style="top:{{ cac.t }}px;left:{{ cac.l }}px;width:{{ csz.w }}px;height:{{ csz.h }}px;"
+    >
+      <text class="ctxt">仙人掌</text>
+    </div>
 
-		<!-- 返回按钮 -->
-		<div class="back" @click="goBack">
-			<text class="btxt">&lt;</text>
-		</div>
+    <!-- 返回按钮 -->
+    <div class="back" @click="goBack">
+      <text class="btxt">&lt;</text>
+    </div>
 
-		<!-- 游戏结束提示 -->
-		<div class="btn" if="{{ over }}">
-			<text>游戏结束</text>
-			<text>本次积分:{{ scor }}分</text>
-			<text>现有积分:{{ totl }}分</text>
-		</div>
+    <!-- 游戏结束提示 -->
+    <div class="btn" if="{{ over }}">
+      <text>游戏结束</text>
+      <text>本次积分:{{ scor }}分</text>
+      <text>现有积分:{{ totl }}分</text>
+    </div>
 
-		<!-- 得分显示 -->
-		<div class="scor" if="{{ !over }}">
-			<text>{{ scor }}分</text>
-		</div>
+    <!-- 得分显示 -->
+    <div class="scor" if="{{ !over }}">
+      <text>{{ scor }}分</text>
+    </div>
 
-		<!-- 时间显示 -->
-		<div class="time" if="{{ !over }}">
-			<text>{{ tim }}秒</text>
-		</div>
-	</div>
+    <!-- 时间显示 -->
+    <div class="time" if="{{ !over }}">
+      <text>{{ tim }}秒</text>
+    </div>
+  </div>
 </template>
 
 <script>
-import router from "@system.router";
-import storage from "@system.storage";
-import device from "@system.device";
+import router from "@system.router"
+import storage from "@system.storage"
+import device from "@system.device"
 
 // 游戏主界面逻辑
 export default {
-	// 返回主界面
-	goBack() {
-		router.replace({ uri: "/pages/main" });
-	},
+  // 返回主界面
+  goBack() {
+    router.replace({uri: "/pages/main"})
+  },
 
-	// 页面数据
-	data: {
-		ply: { t: 0, l: 0, x: 0, y: 0 }, // 玩家位置和速度 (t: top, l: left, x: 水平速度, y: 垂直速度)
-		sw: 336, // 屏幕宽度
-		sh: 480, // 屏幕高度
-		psz: 60, // 玩家大小
-		bsz: 50, // 豆子大小
-		csz: { w: 40, h: 60 }, // 仙人掌尺寸 (w: 宽度, h: 高度)
-		bn: { t: 0, l: 0 }, // 豆子位置 (t: top, l: left)
-		scor: 0, // 当前得分
-		totl: 0, // 总分
-		over: false, // 游戏是否结束
-		tch: false, // 是否触摸中
-		sx: 0, // 触摸起始X坐标
-		sy: 0, // 触摸起始Y坐标
-		tim: 0, // 剩余时间
-		loop: null, // 游戏循环定时器
-		diff: 1, // 难度等级 (1:简单, 2:中等, 3:困难)
-		cac: { show: false, t: 0, l: 0 }, // 仙人掌 (show: 是否显示, t: top, l: left)
+  // 页面数据
+  data: {
+    ply: {t: 0, l: 0, x: 0, y: 0}, // 玩家位置和速度 (t: top, l: left, x: 水平速度, y: 垂直速度)
+    sw: 336, // 屏幕宽度
+    sh: 480, // 屏幕高度
+    psz: 60, // 玩家大小
+    bsz: 50, // 豆子大小
+    csz: {w: 40, h: 60}, // 仙人掌尺寸 (w: 宽度, h: 高度)
+    bn: {t: 0, l: 0}, // 豆子位置 (t: top, l: left)
+    scor: 0, // 当前得分
+    totl: 0, // 总分
+    over: false, // 游戏是否结束
+    tch: false, // 是否触摸中
+    sx: 0, // 触摸起始X坐标
+    sy: 0, // 触摸起始Y坐标
+    tim: 0, // 剩余时间
+    loop: null, // 游戏循环定时器
+    diff: 1, // 难度等级 (1:简单, 2:中等, 3:困难)
+    cac: {show: false, t: 0, l: 0}, // 仙人掌 (show: 是否显示, t: top, l: left)
 
-		// 定时器
-		timer: null,
-	},
+    // 定时器
+    timer: null
+  },
 
-	// 页面初始化
-	onInit() {
-		this.diff = Number(this.diff);
-		device.getInfo({
-			success: (d) => {
-				this.sw = d.screenWidth || 336;
-				this.sh = d.screenHeight || 480;
-				this.init();
-			},
-			fail: () => this.init(),
-		});
-	},
+  // 页面初始化
+  onInit() {
+    this.diff = Number(this.diff)
+    device.getInfo({
+      success: (d) => {
+        this.sw = d.screenWidth || 336
+        this.sh = d.screenHeight || 480
+        this.init()
+      },
+      fail: () => this.init()
+    })
+  },
 
-	// 返回按键处理
-	onBackPress() {
-		return true;
-	},
+  // 返回按键处理
+  onBackPress() {
+    return true
+  },
 
-	// 初始化游戏
-	init() {
-		// 设置玩家初始位置为中心
-		this.ply.l = (this.sw - this.psz) / 2;
-		this.ply.t = (this.sh - this.psz) / 2;
+  // 初始化游戏
+  init() {
+    // 设置玩家初始位置为中心
+    this.ply.l = (this.sw - this.psz) / 2
+    this.ply.t = (this.sh - this.psz) / 2
 
-		// 生成豆子位置
-		this.randB();
+    // 生成豆子位置
+    this.randB()
 
-		// 中等和困难难度显示仙人掌
-		if (this.diff > 1) {
-			this.cac.show = true;
-			this.genC();
-		}
+    // 中等和困难难度显示仙人掌
+    if (this.diff > 1) {
+      this.cac.show = true
+      this.genC()
+    }
 
-		// 加载总分
-		this.load();
+    // 加载总分
+    this.load()
 
-		// 启动游戏循环
-		this.startLoop();
+    // 启动游戏循环
+    this.startLoop()
 
-		// 启动计时器
-		this.startT();
-	},
+    // 启动计时器
+    this.startT()
+  },
 
-	// 生成仙人掌位置
-	genC() {
-		const o = this.randP(this.csz.w, this.csz.h);
-		this.cac.t = o.t;
-		this.cac.l = o.l;
-	},
+  // 生成仙人掌位置
+  genC() {
+    const o = this.randP(this.csz.w, this.csz.h)
+    this.cac.t = o.t
+    this.cac.l = o.l
+  },
 
-	// 随机生成位置 (避免重叠)
-	randP(w, h) {
-		const M = 30, // 边距
-			T0 = M, // 上边界
-			T1 = this.sh - h - M, // 下边界
-			L0 = M, // 左边界
-			L1 = this.sw - w - M; // 右边界
-		let t, // 生成的top坐标
-			l, // 生成的left坐标
-			a = 0, // 尝试次数
-			ok; // 位置是否有效
+  // 随机生成位置 (避免重叠)
+  randP(w, h) {
+    const M = 30, // 边距
+      T0 = M, // 上边界
+      T1 = this.sh - h - M, // 下边界
+      L0 = M, // 左边界
+      L1 = this.sw - w - M // 右边界
+    let t, // 生成的top坐标
+      l, // 生成的left坐标
+      a = 0, // 尝试次数
+      ok // 位置是否有效
 
-		// 循环尝试生成有效位置
-		do {
-			ok = 1;
-			// 随机生成坐标
-			t = Math.floor(Math.random() * (T1 - T0 + 1)) + T0;
-			l = Math.floor(Math.random() * (L1 - L0 + 1)) + L0;
+    // 循环尝试生成有效位置
+    do {
+      ok = 1
+      // 随机生成坐标
+      t = Math.floor(Math.random() * (T1 - T0 + 1)) + T0
+      l = Math.floor(Math.random() * (L1 - L0 + 1)) + L0
 
-			// 检查是否与玩家重叠
-			if (
-				this.hit(t, l, w, h, this.ply.t, this.ply.l, this.psz, this.psz) ||
-				this.hit(t, l, w, h, this.bn.t, this.bn.l, this.bsz, this.bsz)
-			)
-				ok = 0;
+      // 检查是否与玩家重叠
+      if (
+        this.hit(t, l, w, h, this.ply.t, this.ply.l, this.psz, this.psz) ||
+        this.hit(t, l, w, h, this.bn.t, this.bn.l, this.bsz, this.bsz)
+      )
+        ok = 0
 
-			// 检查是否与已有仙人掌重叠
-			if (
-				this.cac.show &&
-				this.hit(t, l, w, h, this.cac.t, this.cac.l, this.csz.w, this.csz.h)
-			)
-				ok = 0;
+      // 检查是否与已有仙人掌重叠
+      if (this.cac.show && this.hit(t, l, w, h, this.cac.t, this.cac.l, this.csz.w, this.csz.h))
+        ok = 0
 
-			a++;
-		} while (!ok && a < 50); // 最多尝试50次
+      a++
+    } while (!ok && a < 50) // 最多尝试50次
 
-		return { t, l };
-	},
+    return {t, l}
+  },
 
-	// 碰撞检测
-	hit(t1, l1, w1, h1, t2, l2, w2, h2) {
-		// 检测两个矩形是否相交
-		return l1 < l2 + w2 && l1 + w1 > l2 && t1 < t2 + h2 && t1 + h1 > t2;
-	},
+  // 碰撞检测
+  hit(t1, l1, w1, h1, t2, l2, w2, h2) {
+    // 检测两个矩形是否相交
+    return l1 < l2 + w2 && l1 + w1 > l2 && t1 < t2 + h2 && t1 + h1 > t2
+  },
 
-	// 随机生成豆子位置
-	randB() {
-		const o = this.randP(this.bsz, this.bsz);
-		this.bn.t = o.t;
-		this.bn.l = o.l;
-	},
+  // 随机生成豆子位置
+  randB() {
+    const o = this.randP(this.bsz, this.bsz)
+    this.bn.t = o.t
+    this.bn.l = o.l
+  },
 
-	// 启动游戏循环
-	startLoop() {
-		if (this.loop) return;
-		this.loop = setInterval(() => {
-			this.move(); // 移动玩家
-			this.check(); // 检测碰撞
-		}, 16); // 约60FPS
-	},
+  // 启动游戏循环
+  startLoop() {
+    if (this.loop) return
+    this.loop = setInterval(() => {
+      this.move() // 移动玩家
+      this.check() // 检测碰撞
+    }, 16) // 约60FPS
+  },
 
-	// 触摸开始事件
-	tstart(e) {
-		const t = e.touches[0];
-		this.sx = t.pageX;
-		this.sy = t.pageY;
-		this.tch = true;
-	},
+  // 触摸开始事件
+  tstart(e) {
+    const t = e.touches[0]
+    this.sx = t.pageX
+    this.sy = t.pageY
+    this.tch = true
+  },
 
-	// 触摸移动事件
-	tmove(e) {
-		if (!this.tch) return;
-		const t = e.touches[0],
-			dx = t.pageX - this.sx, // X轴位移
-			dy = t.pageY - this.sy; // Y轴位移
-		const d = Math.sqrt(dx * dx + dy * dy); // 位移距离
+  // 触摸移动事件
+  tmove(e) {
+    if (!this.tch) return
+    const t = e.touches[0],
+      dx = t.pageX - this.sx, // X轴位移
+      dy = t.pageY - this.sy // Y轴位移
+    const d = Math.sqrt(dx * dx + dy * dy) // 位移距离
 
-		// 位移太小时忽略
-		if (d < 5) return;
+    // 位移太小时忽略
+    if (d < 5) return
 
-		// 计算移动速度 (限制最大速度)
-		const s = Math.min(d / 10, 5);
-		this.ply.x = (dx / d) * s; // 设置水平速度
-		this.ply.y = (dy / d) * s; // 设置垂直速度
-	},
+    // 计算移动速度 (限制最大速度)
+    const s = Math.min(d / 10, 5)
+    this.ply.x = (dx / d) * s // 设置水平速度
+    this.ply.y = (dy / d) * s // 设置垂直速度
+  },
 
-	// 触摸结束事件
-	tend() {
-		this.tch = false;
-	},
+  // 触摸结束事件
+  tend() {
+    this.tch = false
+  },
 
-	// 玩家移动处理
-	move() {
-		// 更新位置
-		this.ply.l += this.ply.x;
-		this.ply.t += this.ply.y;
+  // 玩家移动处理
+  move() {
+    // 更新位置
+    this.ply.l += this.ply.x
+    this.ply.t += this.ply.y
 
-		// 摩擦力模拟
-		this.ply.x *= 0.96;
-		this.ply.y *= 0.96;
+    // 摩擦力模拟
+    this.ply.x *= 0.96
+    this.ply.y *= 0.96
 
-		// 停止阈值
-		if (Math.abs(this.ply.x) < 0.01) this.ply.x = 0;
-		if (Math.abs(this.ply.y) < 0.01) this.ply.y = 0;
+    // 停止阈值
+    if (Math.abs(this.ply.x) < 0.01) this.ply.x = 0
+    if (Math.abs(this.ply.y) < 0.01) this.ply.y = 0
 
-		// 非困难难度边界检测
-		if (this.diff !== 3) {
-			if (this.ply.l < 0) this.ply.l = 0;
-			if (this.ply.l > this.sw - this.psz) this.ply.l = this.sw - this.psz;
-			if (this.ply.t < 0) this.ply.t = 0;
-			if (this.ply.t > this.sh - this.psz) this.ply.t = this.sh - this.psz;
-		} else {
-			// 困难难度碰到边界游戏结束
-			if (
-				this.ply.l < 0 ||
-				this.ply.l > this.sw - this.psz ||
-				this.ply.t < 0 ||
-				this.ply.t > this.sh - this.psz
-			)
-				this.end();
-		}
-	},
+    // 非困难难度边界检测
+    if (this.diff !== 3) {
+      if (this.ply.l < 0) this.ply.l = 0
+      if (this.ply.l > this.sw - this.psz) this.ply.l = this.sw - this.psz
+      if (this.ply.t < 0) this.ply.t = 0
+      if (this.ply.t > this.sh - this.psz) this.ply.t = this.sh - this.psz
+    } else {
+      // 困难难度碰到边界游戏结束
+      if (
+        this.ply.l < 0 ||
+        this.ply.l > this.sw - this.psz ||
+        this.ply.t < 0 ||
+        this.ply.t > this.sh - this.psz
+      )
+        this.end()
+    }
+  },
 
-	// 碰撞检测
-	check() {
-		// 检测玩家是否吃到豆子
-		if (
-			this.hit(
-				this.ply.t,
-				this.ply.l,
-				this.psz,
-				this.psz,
-				this.bn.t,
-				this.bn.l,
-				this.bsz,
-				this.bsz
-			)
-		)
-			this.getB();
+  // 碰撞检测
+  check() {
+    // 检测玩家是否吃到豆子
+    if (
+      this.hit(this.ply.t, this.ply.l, this.psz, this.psz, this.bn.t, this.bn.l, this.bsz, this.bsz)
+    )
+      this.getB()
 
-		// 检测玩家是否碰到仙人掌
-		if (
-			this.cac.show &&
-			this.hit(
-				this.ply.t,
-				this.ply.l,
-				this.psz,
-				this.psz,
-				this.cac.t,
-				this.cac.l,
-				this.csz.w,
-				this.csz.h
-			)
-		)
-			this.end();
-	},
+    // 检测玩家是否碰到仙人掌
+    if (
+      this.cac.show &&
+      this.hit(
+        this.ply.t,
+        this.ply.l,
+        this.psz,
+        this.psz,
+        this.cac.t,
+        this.cac.l,
+        this.csz.w,
+        this.csz.h
+      )
+    )
+      this.end()
+  },
 
-	// 吃到豆子处理
-	getB() {
-		this.randB(); // 生成新豆子
-		this.genC(); // 生成新仙人掌
-		this.scor += this.diff; // 根据难度增加分数
-	},
+  // 吃到豆子处理
+  getB() {
+    this.randB() // 生成新豆子
+    this.genC() // 生成新仙人掌
+    this.scor += this.diff // 根据难度增加分数
+  },
 
-	// 加载总分
-	load() {
-		storage.get({
-			key: "totalScore",
-			success: (d) => {
-				this.totl = d ? parseInt(d) : 0;
-			},
-		});
-	},
+  // 加载总分
+  load() {
+    storage.get({
+      key: "totalScore",
+      success: (d) => {
+        this.totl = d ? parseInt(d) : 0
+      }
+    })
+  },
 
-	// 保存总分
-	save() {
-		this.totl = this.scor;
-		storage.set({ key: "totalScore", value: this.totl.toString() });
-	},
+  // 保存总分
+  save() {
+    this.totl += this.scor
+    storage.set({key: "totalScore", value: this.totl.toString()})
+  },
 
-	// 游戏结束
-	end() {
-		this.save(); // 保存分数
-		this.stop(); // 停止游戏
-		this.over = true; // 设置游戏结束标志
-	},
+  // 游戏结束
+  end() {
+    this.save() // 保存分数
+    this.stop() // 停止游戏
+    this.over = true // 设置游戏结束标志
+  },
 
-	// 停止游戏循环和计时器
-	stop() {
-		// 停止游戏循环
-		if (this.loop) {
-			clearInterval(this.loop);
-			this.loop = null;
-		}
+  // 停止游戏循环和计时器
+  stop() {
+    // 停止游戏循环
+    if (this.loop) {
+      clearInterval(this.loop)
+      this.loop = null
+    }
 
-		// 停止计时器
-		if (this.timer) {
-			clearInterval(this.timer);
-			this.timer = null;
-		}
-	},
+    // 停止计时器
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
+  },
 
-	// 启动计时器
-	startT() {
-		if (this.timer) clearInterval(this.timer);
-		this.timer = setInterval(() => {
-			// 倒计时
-			if (this.tim > 0 && !this.over) {
-				this.tim--;
-				// 时间到游戏结束
-				if (this.tim <= 0) this.end();
-			} else if (this.timer) {
-				clearInterval(this.timer);
-				this.timer = null;
-			}
-		}, 1000); // 每秒更新一次
-	},
+  // 启动计时器
+  startT() {
+    if (this.timer) clearInterval(this.timer)
+    this.timer = setInterval(() => {
+      // 倒计时
+      if (this.tim > 0 && !this.over) {
+        this.tim--
+        // 时间到游戏结束
+        if (this.tim <= 0) this.end()
+      } else if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+      }
+    }, 1000) // 每秒更新一次
+  },
 
-	// 页面销毁时清理资源
-	onDestroy() {
-		this.stop();
-	},
-};
+  // 页面销毁时清理资源
+  onDestroy() {
+    this.stop()
+  }
+}
 </script>
 <style>
 @import "../../common/styles.css";
 
 /* 页面主体样式 */
 .body {
-	flex-direction: column;
-	justify-content: flex-start;
-	align-items: center;
-	background-color: black;
-	height: 100%;
-	width: 100%;
-	padding-top: 10px;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: black;
+  height: 100%;
+  width: 100%;
+  padding-top: 10px;
 }
 
 /* 玩家角色样式 */
 .man {
-	position: absolute;
-	background-color: blue;
-	color: white;
-	font-size: 35px;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	border-radius: 12px;
+  position: absolute;
+  background-color: blue;
+  color: white;
+  font-size: 35px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
 }
 
 /* 豆子样式 */
 .dou {
-	position: absolute;
-	border-radius: 25px;
-	background-color: yellow;
-	color: black;
-	font-size: 30px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 5;
+  position: absolute;
+  border-radius: 25px;
+  background-color: yellow;
+  color: black;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
 }
 
 /* 仙人掌样式 */
 .cact {
-	position: absolute;
-	border-radius: 8px;
-	background-color: green;
-	color: white;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 5;
+  position: absolute;
+  border-radius: 8px;
+  background-color: green;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
 }
 
 /* 仙人掌文字样式 */
 .ctxt {
-	color: #fff;
-	font-size: 12px;
-	font-weight: bold;
-	writing-mode: vertical-rl;
-	text-orientation: mixed;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
 }
 
 /* 得分显示样式 */
 .scor {
-	position: absolute;
-	display: flex;
-	color: white;
-	padding: 7px 13px;
-	border-radius: 10px;
-	font-size: 24px;
-	font-weight: bold;
-	top: 60px;
-	background-color: rgba(32, 32, 32, 0.8);
+  position: absolute;
+  display: flex;
+  color: white;
+  padding: 7px 13px;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  top: 60px;
+  background-color: rgba(32, 32, 32, 0.8);
 }
 
 /* 时间显示样式 */
 .time {
-	position: absolute;
-	display: flex;
-	color: red;
-	padding: 10px 15px;
-	border-radius: 10px;
-	font-size: 24px;
-	font-weight: bold;
-	top: 115px;
-	background-color: rgba(32, 32, 32, 0.8);
+  position: absolute;
+  display: flex;
+  color: red;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  top: 115px;
+  background-color: rgba(32, 32, 32, 0.8);
 }
 
 /* 游戏结束按钮样式 */
 .btn {
-	position: fixed;
-	top: 100%;
-	color: white;
-	flex-direction: column;
-	justify-content: space-between;
-	align-items: center;
+  position: fixed;
+  top: 100%;
+  color: white;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>
