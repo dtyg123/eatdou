@@ -91,15 +91,15 @@ export default {
   // 选择难度等级
   level(l) {
     this.lvl = l
-    // 计算消耗积分: 难度等级*(时间限制/10)+难度等级-2
-    this.cost = this.lvl * (this.tlim / 10) + this.lvl - 2
+    // 计算消耗积分: 难度等级*(时间限制/10)-1
+    this.cost = this.lvl * (this.tlim / 10) - 1
   },
 
   // 时间滑块变化处理
   change(e) {
     this.tlim = e.progress
     // 重新计算消耗积分
-    this.cost = this.lvl * (this.tlim / 10) + this.lvl - 2
+    this.cost = this.lvl * (this.tlim / 10) - 1
   },
 
   // 开始游戏
