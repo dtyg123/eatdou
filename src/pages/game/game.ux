@@ -62,6 +62,7 @@ export default {
   // 返回主界面
   goBack() {
     router.replace({uri: "/pages/main"})
+    this.save()
   },
 
   // 页面数据
@@ -302,7 +303,11 @@ export default {
 
   // 保存总分
   save() {
-    this.totl += this.scor
+    if (this.tim <= 0) {
+      this.totl += this.scor
+    } else {
+      this.totl += Math.floor(this.scor / 10)
+    }
     storage.set({key: "totalScore", value: this.totl.toString()})
   },
 
@@ -342,11 +347,6 @@ export default {
         this.timer = null
       }
     }, 1000) // 每秒更新一次
-  },
-
-  // 页面销毁时清理资源
-  onDestroy() {
-    this.stop()
   }
 }
 </script>
