@@ -50,14 +50,14 @@ export default {
 
   // 开始游戏按钮点击事件
   start() {
-    router.push({
+    router.replace({
       uri: "/pages/difficulty"
     })
   },
 
   // 跳转到赞赏页面
   toindex() {
-    router.push({
+    router.replace({
       uri: "/pages/index"
     })
   },
