@@ -46,7 +46,7 @@
     </div>
 
     <!-- 时间显示 -->
-    <div class="time" if="{{ !over }}">
+    <div class="scor" if="{{ !over }}" style="color: red; margin-top: 100px">
       <text>{{ tim }}秒</text>
     </div>
   </div>
@@ -62,7 +62,9 @@ export default {
   // 返回主界面
   goBack() {
     router.replace({uri: "/pages/main"})
-    this.save()
+    if (this.tim > 0) {
+      this.save()
+    }
   },
 
   // 页面数据
@@ -192,8 +194,69 @@ export default {
   startLoop() {
     if (this.loop) return
     this.loop = setInterval(() => {
-      this.move() // 移动玩家
-      this.check() // 检测碰撞
+      // 更新位置
+      this.ply.l += this.ply.x
+      this.ply.t += this.ply.y
+
+      // 摩擦力模拟
+      this.ply.x *= 0.96
+      this.ply.y *= 0.96
+
+      // 停止阈值
+      if (Math.abs(this.ply.x) < 0.01) this.ply.x = 0
+      if (Math.abs(this.ply.y) < 0.01) this.ply.y = 0
+
+      // 边界检测
+      if (this.diff === 3) {
+        // 困难难度碰到边界游戏结束
+        if (
+          this.ply.l < 0 ||
+          this.ply.l > this.sw - this.psz ||
+          this.ply.t < 0 ||
+          this.ply.t > this.sh - this.psz
+        )
+          this.end()
+      } else {
+        // 非困难难度边界检测
+        if (this.ply.l < 0) this.ply.l = 0
+        if (this.ply.l > this.sw - this.psz) this.ply.l = this.sw - this.psz
+        if (this.ply.t < 0) this.ply.t = 0
+        if (this.ply.t > this.sh - this.psz) this.ply.t = this.sh - this.psz
+      }
+
+      // 检测玩家是否吃到豆子
+      if (
+        this.hit(
+          this.ply.t,
+          this.ply.l,
+          this.psz,
+          this.psz,
+          this.bn.t,
+          this.bn.l,
+          this.bsz,
+          this.bsz
+        )
+      ) {
+        this.randB() // 生成新豆子
+        this.genC() // 生成新仙人掌
+        this.scor += this.diff // 根据难度增加分数
+      }
+
+      // 检测玩家是否碰到仙人掌
+      if (
+        this.cac.show &&
+        this.hit(
+          this.ply.t,
+          this.ply.l,
+          this.psz,
+          this.psz,
+          this.cac.t,
+          this.cac.l,
+          this.csz.w,
+          this.csz.h
+        )
+      )
+        this.end()
     }, 16) // 约60FPS
   },
 
@@ -227,70 +290,6 @@ export default {
     this.tch = false
   },
 
-  // 玩家移动处理
-  move() {
-    // 更新位置
-    this.ply.l += this.ply.x
-    this.ply.t += this.ply.y
-
-    // 摩擦力模拟
-    this.ply.x *= 0.96
-    this.ply.y *= 0.96
-
-    // 停止阈值
-    if (Math.abs(this.ply.x) < 0.01) this.ply.x = 0
-    if (Math.abs(this.ply.y) < 0.01) this.ply.y = 0
-
-    // 非困难难度边界检测
-    if (this.diff !== 3) {
-      if (this.ply.l < 0) this.ply.l = 0
-      if (this.ply.l > this.sw - this.psz) this.ply.l = this.sw - this.psz
-      if (this.ply.t < 0) this.ply.t = 0
-      if (this.ply.t > this.sh - this.psz) this.ply.t = this.sh - this.psz
-    } else {
-      // 困难难度碰到边界游戏结束
-      if (
-        this.ply.l < 0 ||
-        this.ply.l > this.sw - this.psz ||
-        this.ply.t < 0 ||
-        this.ply.t > this.sh - this.psz
-      )
-        this.end()
-    }
-  },
-
-  // 碰撞检测
-  check() {
-    // 检测玩家是否吃到豆子
-    if (
-      this.hit(this.ply.t, this.ply.l, this.psz, this.psz, this.bn.t, this.bn.l, this.bsz, this.bsz)
-    )
-      this.getB()
-
-    // 检测玩家是否碰到仙人掌
-    if (
-      this.cac.show &&
-      this.hit(
-        this.ply.t,
-        this.ply.l,
-        this.psz,
-        this.psz,
-        this.cac.t,
-        this.cac.l,
-        this.csz.w,
-        this.csz.h
-      )
-    )
-      this.end()
-  },
-
-  // 吃到豆子处理
-  getB() {
-    this.randB() // 生成新豆子
-    this.genC() // 生成新仙人掌
-    this.scor += this.diff // 根据难度增加分数
-  },
-
   // 加载总分
   load() {
     storage.get({
@@ -301,13 +300,28 @@ export default {
     })
   },
 
+  // 启动计时器
+  startT() {
+    if (this.timer) clearInterval(this.timer)
+    this.timer = setInterval(() => {
+      // 倒计时
+      if (this.tim > 0 && !this.over) {
+        this.tim--
+        // 时间到游戏结束
+        if (this.tim <= 0) this.end()
+      } else if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+      }
+    }, 1000) // 每秒更新一次
+  },
+
   // 保存总分
   save() {
-    if (this.tim <= 0) {
-      this.totl += this.scor
-    } else {
-      this.totl += Math.floor(this.scor / 10)
+    if (this.tim > 0) {
+      this.scor = Math.floor(this.scor / 10)
     }
+    this.totl += this.scor
     storage.set({key: "totalScore", value: this.totl.toString()})
   },
 
@@ -331,22 +345,6 @@ export default {
       clearInterval(this.timer)
       this.timer = null
     }
-  },
-
-  // 启动计时器
-  startT() {
-    if (this.timer) clearInterval(this.timer)
-    this.timer = setInterval(() => {
-      // 倒计时
-      if (this.tim > 0 && !this.over) {
-        this.tim--
-        // 时间到游戏结束
-        if (this.tim <= 0) this.end()
-      } else if (this.timer) {
-        clearInterval(this.timer)
-        this.timer = null
-      }
-    }, 1000) // 每秒更新一次
   }
 }
 </script>
@@ -404,37 +402,21 @@ export default {
 
 /* 仙人掌文字样式 */
 .ctxt {
-  color: #fff;
   font-size: 12px;
   font-weight: bold;
   writing-mode: vertical-rl;
   text-orientation: mixed;
 }
 
-/* 得分显示样式 */
+/* 得分,时间显示样式 */
 .scor {
   position: absolute;
   display: flex;
   color: white;
-  padding: 7px 13px;
   border-radius: 10px;
   font-size: 24px;
   font-weight: bold;
-  top: 60px;
-  background-color: rgba(32, 32, 32, 0.8);
-}
-
-/* 时间显示样式 */
-.time {
-  position: absolute;
-  display: flex;
-  color: red;
-  padding: 10px 15px;
-  border-radius: 10px;
-  font-size: 24px;
-  font-weight: bold;
-  top: 115px;
-  background-color: rgba(32, 32, 32, 0.8);
+  margin-top: 60px;
 }
 
 /* 游戏结束按钮样式 */
