@@ -109,7 +109,7 @@ export default {
       prompt.showToast({
         message: "积分不足，无法开始游戏"
       })
-    } else if (this.scor > this.cost * 10) {
+    } else if (this.scor > this.cost * 10 && this.scor < 350) {
       prompt.showToast({
         message: "积分过多，无法开始游戏"
       })
