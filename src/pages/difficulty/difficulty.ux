@@ -109,6 +109,10 @@ export default {
       prompt.showToast({
         message: "积分不足，无法开始游戏"
       })
+    } else if (this.scor > this.cost * 10) {
+      prompt.showToast({
+        message: "积分过多，无法开始游戏"
+      })
     } else {
       // 扣除消耗的积分
       this.scor -= this.cost
@@ -202,8 +206,7 @@ export default {
 .info {
   align-items: center;
   flex-direction: column;
-  margin-bottom: 20px;
-  margin-top: 20px;
+  margin-top: 10px;
   text-align: center;
 }
 
