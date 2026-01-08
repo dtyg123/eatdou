@@ -45,9 +45,7 @@ import router from "@system.router"
 export default {
   // 返回主界面
   goBack() {
-    router.replace({
-      uri: "/pages/main"
-    })
+    router.back()
   }
 }
 </script>
