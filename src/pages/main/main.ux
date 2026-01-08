@@ -57,7 +57,7 @@ export default {
 
   // 跳转到赞赏页面
   toindex() {
-    router.replace({
+    router.push({
       uri: "/pages/index"
     })
   },
