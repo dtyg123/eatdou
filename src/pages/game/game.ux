@@ -1,53 +1,55 @@
 <template>
-  <!-- 游戏主界面 -->
-  <div class="body" @touchstart="tstart" @touchmove="tmove" @touchend="tend" @touchcancel="tend">
-    <!-- 玩家角色 -->
-    <div
-      class="man"
-      style="top:{{ ply.t }}px;left:{{ ply.l }}px;width:{{ psz }}px;height:{{ psz }}px;"
-      if="{{ !over }}"
-    >
-      <text>人</text>
-    </div>
-
-    <!-- 豆子 -->
-    <div
-      class="dou"
-      style="top:{{ bn.t }}px;left:{{ bn.l }}px;width:{{ bsz }}px;height:{{ bsz }}px;"
-      if="{{ !over }}"
-    >
-      <text>豆</text>
-    </div>
-
-    <!-- 仙人掌 -->
-    <div
-      class="cact"
-      if="{{ !over && cac.show }}"
-      style="top:{{ cac.t }}px;left:{{ cac.l }}px;width:{{ csz.w }}px;height:{{ csz.h }}px;"
-    >
-      <text class="ctxt">仙人掌</text>
-    </div>
-
+  <!-- 难度选择界面 -->
+  <div class="body">
     <!-- 返回按钮 -->
     <div class="back" @click="goBack">
       <text class="btxt">&lt;</text>
     </div>
 
-    <!-- 游戏结束提示 -->
-    <div class="btn" if="{{ over }}">
-      <text>游戏结束</text>
-      <text>本次积分:{{ scor }}分</text>
-      <text>现有积分:{{ totl }}分</text>
+    <!-- 积分显示区域 -->
+    <div class="info">
+      <text class="vers">当前积分: {{ scor }}</text>
     </div>
 
-    <!-- 得分显示 -->
-    <div class="scor" if="{{ !over }}">
-      <text>{{ scor }}分</text>
+    <!-- 难度选择区域 -->
+    <div class="opts">
+      <!-- 简单难度选项 -->
+      <div class="item {{ lvl === 1 ? 'sel' : '' }}" @click="level(1)">
+        <text class="txt">简单</text>
+        <text class="desc">碰壁死亡</text>
+      </div>
+
+      <!-- 中等难度选项 -->
+      <div class="item {{ lvl === 2 ? 'sel' : '' }}" @click="level(2)">
+        <text class="txt">中等</text>
+        <text class="desc">固定仙人掌</text>
+      </div>
+
+      <!-- 困难难度选项 -->
+      <div class="item {{ lvl === 3 ? 'sel' : '' }}" @click="level(3)">
+        <text class="txt">困难</text>
+        <text class="desc">随机仙人掌</text>
+      </div>
     </div>
 
-    <!-- 时间显示 -->
-    <div class="scor" if="{{ !over }}" style="color: red; margin-top: 100px">
-      <text>{{ tim }}秒</text>
+    <!-- 限时选项区域 -->
+    <div class="time" if="{{ lvl > 0 }}">
+      <text class="vers">消耗:{{ cost }}积分</text>
+      <text class="vers">限时:{{ tlim }}秒</text>
+      <!-- 时间滑动条 -->
+      <slider
+        class="tsld"
+        min="10"
+        max="120"
+        value="{{ tlim }}"
+        step="10"
+        @change="change"
+      ></slider>
+    </div>
+
+    <!-- 开始游戏按钮 -->
+    <div class="strt" @click="startGame" if="{{ lvl > 0 }}">
+      <text class="stxt">开始游戏</text>
     </div>
   </div>
 </template>
@@ -55,52 +57,29 @@
 <script>
 import router from "@system.router"
 import storage from "@system.storage"
-import device from "@system.device"
+import prompt from "@system.prompt"
 
-// 游戏主界面逻辑
+// 难度选择界面逻辑
 export default {
-  // 返回主界面
-  goBack() {
-    router.replace({uri: "/pages/main"})
-    if (this.tim > 0) {
-      this.save()
-    }
-  },
-
   // 页面数据
   data: {
-    ply: {t: 0, l: 0, x: 0, y: 0}, // 玩家位置和速度 (t: top, l: left, x: 水平速度, y: 垂直速度)
-    sw: 336, // 屏幕宽度
-    sh: 480, // 屏幕高度
-    psz: 60, // 玩家大小
-    bsz: 50, // 豆子大小
-    csz: {w: 40, h: 60}, // 仙人掌尺寸 (w: 宽度, h: 高度)
-    bn: {t: 0, l: 0}, // 豆子位置 (t: top, l: left)
-    scor: 0, // 当前得分
-    totl: 0, // 总分
-    over: false, // 游戏是否结束
-    tch: false, // 是否触摸中
-    sx: 0, // 触摸起始X坐标
-    sy: 0, // 触摸起始Y坐标
-    tim: 0, // 剩余时间
-    loop: null, // 游戏循环定时器
-    diff: 1, // 难度等级 (1:简单, 2:中等, 3:困难)
-    cac: {show: false, t: 0, l: 0}, // 仙人掌 (show: 是否显示, t: top, l: left)
-
-    // 定时器
-    timer: null
+    lvl: 0, // 难度等级 (0:未选择, 1:简单, 2:中等, 3:困难)
+    tlim: 60, // 时间限制 (秒)
+    scor: 0, // 当前总分
+    cost: 0 // 消耗积分
   },
 
   // 页面初始化
   onInit() {
-    this.diff = Number(this.diff)
-    device.getInfo({
-      success: (d) => {
-        this.sw = d.screenWidth || 336
-        this.sh = d.screenHeight || 480
-        this.init()
+    // 从本地存储获取总分
+    storage.get({
+      key: "totalScore",
+      success: (data) => {
+        this.scor = data ? parseInt(data) : 0
       },
-      fail: () => this.init()
+      fail: () => {
+        this.scor = 0
+      }
     })
   },
 
@@ -109,323 +88,163 @@ export default {
     return true
   },
 
-  // 初始化游戏
-  init() {
-    // 设置玩家初始位置为中心
-    this.ply.l = (this.sw - this.psz) / 2
-    this.ply.t = (this.sh - this.psz) / 2
+  // 选择难度等级
+  level(l) {
+    this.lvl = l
+    // 计算消耗积分: 难度等级*(时间限制/10)-1
+    this.cost = this.lvl * (this.tlim / 10) - 1
+  },
 
-    // 生成豆子位置
-    this.randB()
+  // 时间滑块变化处理
+  change(e) {
+    this.tlim = e.progress
+    // 重新计算消耗积分
+    this.cost = this.lvl * (this.tlim / 10) - 1
+  },
 
-    // 中等和困难难度显示仙人掌
-    if (this.diff > 1) {
-      this.cac.show = true
-      this.genC()
+  // 开始游戏
+  startGame() {
+    // 如果积分不足，不开始游戏
+    if (this.scor < this.cost) {
+      prompt.showToast({
+        message: "积分不足，无法开始游戏"
+      })
+    } else if (this.scor > this.cost * 10 && this.cost != 35) {
+      prompt.showToast({
+        message: "积分过多，无法开始游戏"
+      })
+    } else {
+      // 扣除消耗的积分
+      this.scor -= this.cost
+      storage.set({
+        key: "totalScore",
+        value: this.scor.toString()
+      })
+
+      // 跳转到游戏界面
+      router.replace({
+        uri: "/pages/game",
+        params: {
+          diff: this.lvl, // 难度等级
+          tim: this.tlim // 时间限制
+        }
+      })
     }
-
-    // 加载总分
-    this.load()
-
-    // 启动游戏循环
-    this.startLoop()
-
-    // 启动计时器
-    this.startT()
   },
 
-  // 生成仙人掌位置
-  genC() {
-    const o = this.randP(this.csz.w, this.csz.h)
-    this.cac.t = o.t
-    this.cac.l = o.l
-  },
-
-  // 随机生成位置 (避免重叠)
-  randP(w, h) {
-    const M = 30, // 边距
-      T0 = M, // 上边界
-      T1 = this.sh - h - M, // 下边界
-      L0 = M, // 左边界
-      L1 = this.sw - w - M // 右边界
-    let t, // 生成的top坐标
-      l, // 生成的left坐标
-      a = 0, // 尝试次数
-      ok // 位置是否有效
-
-    // 循环尝试生成有效位置
-    do {
-      ok = 1
-      // 随机生成坐标
-      t = Math.floor(Math.random() * (T1 - T0 + 1)) + T0
-      l = Math.floor(Math.random() * (L1 - L0 + 1)) + L0
-
-      // 检查是否与玩家重叠
-      if (
-        this.hit(t, l, w, h, this.ply.t, this.ply.l, this.psz, this.psz) ||
-        this.hit(t, l, w, h, this.bn.t, this.bn.l, this.bsz, this.bsz)
-      )
-        ok = 0
-
-      // 检查是否与已有仙人掌重叠
-      if (this.cac.show && this.hit(t, l, w, h, this.cac.t, this.cac.l, this.csz.w, this.csz.h))
-        ok = 0
-
-      a++
-    } while (!ok && a < 50) // 最多尝试50次
-
-    return {t, l}
-  },
-
-  // 碰撞检测
-  hit(t1, l1, w1, h1, t2, l2, w2, h2) {
-    // 检测两个矩形是否相交
-    return l1 < l2 + w2 && l1 + w1 > l2 && t1 < t2 + h2 && t1 + h1 > t2
-  },
-
-  // 随机生成豆子位置
-  randB() {
-    const o = this.randP(this.bsz, this.bsz)
-    this.bn.t = o.t
-    this.bn.l = o.l
-  },
-
-  // 启动游戏循环
-  startLoop() {
-    if (this.loop) return
-    this.loop = setInterval(() => {
-      // 更新位置
-      this.ply.l += this.ply.x
-      this.ply.t += this.ply.y
-
-      // 摩擦力模拟
-      this.ply.x *= 0.96
-      this.ply.y *= 0.96
-
-      // 停止阈值
-      if (Math.abs(this.ply.x) < 0.01) this.ply.x = 0
-      if (Math.abs(this.ply.y) < 0.01) this.ply.y = 0
-
-      // 边界检测
-      if (this.diff === 3) {
-        // 困难难度碰到边界游戏结束
-        if (
-          this.ply.l < 0 ||
-          this.ply.l > this.sw - this.psz ||
-          this.ply.t < 0 ||
-          this.ply.t > this.sh - this.psz
-        )
-          this.end()
-      } else {
-        // 非困难难度边界检测
-        if (this.ply.l < 0) this.ply.l = 0
-        if (this.ply.l > this.sw - this.psz) this.ply.l = this.sw - this.psz
-        if (this.ply.t < 0) this.ply.t = 0
-        if (this.ply.t > this.sh - this.psz) this.ply.t = this.sh - this.psz
-      }
-
-      // 检测玩家是否吃到豆子
-      if (
-        this.hit(
-          this.ply.t,
-          this.ply.l,
-          this.psz,
-          this.psz,
-          this.bn.t,
-          this.bn.l,
-          this.bsz,
-          this.bsz
-        )
-      ) {
-        this.randB() // 生成新豆子
-        this.genC() // 生成新仙人掌
-        this.scor += this.diff // 根据难度增加分数
-      }
-
-      // 检测玩家是否碰到仙人掌
-      if (
-        this.cac.show &&
-        this.hit(
-          this.ply.t,
-          this.ply.l,
-          this.psz,
-          this.psz,
-          this.cac.t,
-          this.cac.l,
-          this.csz.w,
-          this.csz.h
-        )
-      )
-        this.end()
-    }, 16) // 约60FPS
-  },
-
-  // 触摸开始事件
-  tstart(e) {
-    const t = e.touches[0]
-    this.sx = t.pageX
-    this.sy = t.pageY
-    this.tch = true
-  },
-
-  // 触摸移动事件
-  tmove(e) {
-    if (!this.tch) return
-    const t = e.touches[0],
-      dx = t.pageX - this.sx, // X轴位移
-      dy = t.pageY - this.sy // Y轴位移
-    const d = Math.sqrt(dx * dx + dy * dy) // 位移距离
-
-    // 位移太小时忽略
-    if (d < 5) return
-
-    // 计算移动速度 (限制最大速度)
-    const s = Math.min(d / 10, 5)
-    this.ply.x = (dx / d) * s // 设置水平速度
-    this.ply.y = (dy / d) * s // 设置垂直速度
-  },
-
-  // 触摸结束事件
-  tend() {
-    this.tch = false
-  },
-
-  // 加载总分
-  load() {
-    storage.get({
-      key: "totalScore",
-      success: (d) => {
-        this.totl = d ? parseInt(d) : 0
-      }
+  // 返回主界面
+  goBack() {
+    router.replace({
+      uri: "/pages/main"
     })
-  },
-
-  // 启动计时器
-  startT() {
-    if (this.timer) clearInterval(this.timer)
-    this.timer = setInterval(() => {
-      // 倒计时
-      if (this.tim > 0 && !this.over) {
-        this.tim--
-        // 时间到游戏结束
-        if (this.tim <= 0) this.end()
-      } else if (this.timer) {
-        clearInterval(this.timer)
-        this.timer = null
-      }
-    }, 1000) // 每秒更新一次
-  },
-
-  // 保存总分
-  save() {
-    if (this.tim > 0) {
-      this.scor = Math.floor(this.scor / 10)
-    }
-    this.totl += this.scor
-    storage.set({key: "totalScore", value: this.totl.toString()})
-  },
-
-  // 游戏结束
-  end() {
-    this.save() // 保存分数
-    this.stop() // 停止游戏
-    this.over = true // 设置游戏结束标志
-  },
-
-  // 停止游戏循环和计时器
-  stop() {
-    // 停止游戏循环
-    if (this.loop) {
-      clearInterval(this.loop)
-      this.loop = null
-    }
-
-    // 停止计时器
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = null
-    }
   }
 }
 </script>
+
 <style>
 @import "../../common/styles.css";
 
 /* 页面主体样式 */
 .body {
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
-  background-color: black;
-  height: 100%;
-  width: 100%;
   padding-top: 10px;
 }
 
-/* 玩家角色样式 */
-.man {
-  position: absolute;
-  background-color: blue;
-  color: white;
-  font-size: 35px;
-  display: flex;
+/* 难度选项区域样式 */
+.opts {
+  width: 80%;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  margin-bottom: 20px;
+}
+
+/* 难度选项样式 */
+.item {
+  width: 100%;
+  padding: 15px;
+  margin: 8px 0;
+  background-color: #333;
   border-radius: 12px;
-}
-
-/* 豆子样式 */
-.dou {
-  position: absolute;
-  border-radius: 25px;
-  background-color: yellow;
-  color: black;
-  font-size: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-}
-
-/* 仙人掌样式 */
-.cact {
-  position: absolute;
-  border-radius: 8px;
-  background-color: green;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-}
-
-/* 仙人掌文字样式 */
-.ctxt {
-  font-size: 12px;
-  font-weight: bold;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-}
-
-/* 得分,时间显示样式 */
-.scor {
-  position: absolute;
-  display: flex;
-  color: white;
-  border-radius: 10px;
-  font-size: 24px;
-  font-weight: bold;
-  margin-top: 60px;
-}
-
-/* 游戏结束按钮样式 */
-.btn {
-  position: fixed;
-  top: 100%;
-  color: white;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
+  border: 2px solid #000;
+}
+
+/* 选项标题样式 */
+.txt {
+  font-size: 28px;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* 选项描述样式 */
+.desc {
+  font-size: 24px;
+  color: #ccc;
+  margin-top: 5px;
+}
+
+/* 选中状态样式 */
+.sel {
+  background-color: #ffd700;
+  border: 2px solid #000;
+}
+
+/* 选中状态下的标题样式 */
+.sel .txt {
+  color: #000;
+}
+
+/* 选中状态下的描述样式 */
+.sel .desc {
+  color: #333;
+}
+
+/* 信息展示区域样式 */
+.info {
+  align-items: center;
+  flex-direction: column;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* 版本信息文字样式 */
+.vers {
+  font-size: 27px;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* 限时选项区域样式 */
+.time {
+  width: 80%;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* 时间滑块样式 */
+.tsld {
+  width: 100%;
+  height: 40px;
+}
+
+/* 开始按钮样式 */
+.strt {
+  padding: 15px;
+  background-color: #333;
+  border-radius: 12px;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid #000;
+}
+
+/* 开始按钮文字样式 */
+.stxt {
+  font-size: 28px;
+  color: #ffd700;
+  font-weight: bold;
 }
 </style>
