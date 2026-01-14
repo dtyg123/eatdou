@@ -16,19 +16,19 @@
       <!-- 简单难度选项 -->
       <div class="item {{ lvl === 1 ? 'sel' : '' }}" @click="level(1)">
         <text class="txt">简单</text>
-        <text class="desc">无仙人掌</text>
+        <text class="desc">碰壁死亡</text>
       </div>
 
       <!-- 中等难度选项 -->
       <div class="item {{ lvl === 2 ? 'sel' : '' }}" @click="level(2)">
         <text class="txt">中等</text>
-        <text class="desc">有仙人掌</text>
+        <text class="desc">固定仙人掌</text>
       </div>
 
       <!-- 困难难度选项 -->
       <div class="item {{ lvl === 3 ? 'sel' : '' }}" @click="level(3)">
         <text class="txt">困难</text>
-        <text class="desc">仙人掌+碰壁死亡</text>
+        <text class="desc">随机仙人掌</text>
       </div>
     </div>
 
@@ -109,7 +109,7 @@ export default {
       prompt.showToast({
         message: "积分不足，无法开始游戏"
       })
-    } else if (this.scor > this.cost * 10 && this.cost == 35) {
+    } else if (this.scor > this.cost * 10 && this.cost != 35) {
       prompt.showToast({
         message: "积分过多，无法开始游戏"
       })
